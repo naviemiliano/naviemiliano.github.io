@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 1: Images of the Russian Empire -- Colorizing the Prokudin-Gorskii Photo Collection</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            margin: 20px;
+            color: white;
+            background-color: #121212;
+        }
+        img {
+          max-width: 100%;
+          height: auto;
+          display: block;
+          margin: 1.5em auto;
+          border-radius: 3px;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 2em 0;
+        }
+        .image-item {
+            text-align: center;
+        }
+        .image-item img {
+            margin: 0 auto 10px;
+        }
+        .caption-info {
+            background-color: #eeeeee;
+            border: 1px solid #e1e4e8;
+            color: black;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <a href="../">Go Back</a>
+    <h1>Project 1: Images of the Russian Empire -- Colorizing the Prokudin-Gorskii Photo Collection</h1>
+    Sergei Mikhailovich Prokudin-Gorskii (1863-1944) was a Russian phottographer who traveled across the
+    vast Russian empire to take color photographs of everything he saw.To do this he recorded three exposures 
+    of every scene onto a glass plate using a red, a green, and a blue filter. 
+    Although there was no way to print the images at the time, he showcasing them using special projectors in 
+    "multimedia" classrooms all across Russia, where the children would be able to learn about their vast country. 
+    His plans never materialized, as he left Russia in 1918, right after the revolution, and never returned again. 
+    Prokudin-Gorskii's RGB glass plate negatives, which captured the last years of the Russian Empire, were 
+    purchased in 1948—and recently digitized—by the Library of Congress.
+    <br>
+    <br>
+    The goal of this project is to utilize image processing techniques to reconstruct Prokudin-Gorskii’s glass-plate 
+    images and produce their colorized counterparts with as few visual artifacts as possible. 
+    
+    To do this, I intook the digitized images and separated them into their respective RGB color channels, overlaid 
+    and aligned them to prodcude a single colorized image.
+
+    <h2>Part 1 – Naive Implementation</h2>
+    I started with a naive approach on the smaller images. For each image, I had the algorithm read the image and 
+    split it into it's respective RGB channels by dividing the entire image by 1/3. From there, I used an exhaustive
+    alignment algorithm that searched over a specified window of displacements—in this case [-15, 15]—and used a 
+    scoring metric to calculate the image alignment, and return the most aligned displacement. After aligning the 
+    images, I cropped the borders to remove the chromic abberation seen along the edges of the photographs.
+    <h4>Scoring Metrics</h4>
+    For the scoring metric, I experimented with L2 Norm and Normalized Cross Correlation (NCC) to determine 
+    channel alignment. 
+    <br><br>
+    L2 Norm, also called the Euclidean Norm, compares the pixel intensity at specified positions within the two images.
+    It then subtracts the pixel values and squares the difference, and sums over all pixels. Although it is simple, this
+    metric is affected by differences in light intensity (if one image is brighter than the other) and exposure. In contrast,
+    Normalized Cross-Correlation (NCC) first normalizes the two images, to account for differing brightness or contrast
+    across both images. Because of this, NCC is comparing the two images based on intensity patterns, rather than the individual
+    pixel values.
+    <br>
+    <br>
+    I initially priorized utilizing L2 Norm, as the equation was simple, however, quickly realized
+    that although the algorithm ran quicker, the output results were less aligned in comparison to NCC.
+    <h4>Initial Images</h4>
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/single_scale/cathedral_exhaustive.jpg">
+            <div class="caption-info">Cathedral: R=(7, -1), G=(1, -1)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/monastery_exhaustive.jpg">
+            <div class="caption-info">Monastery: R=(9, 1), G=(-6, 0)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/tobolsk_exhaustive.jpg">
+            <div class="caption-info">Tobolsk: R=(6, 3), G=(3, 2)</div>
+        </div>
+    </div>
+    <h4>Challenges</h4>
+    As you can see in the images above, although this implementation worked well for the the cathedral and tobolsk images, the
+    monastery was still showed severe signs of misalignment. In response, I changed the order of steps. Instead of cropping the 
+    final colorized image, I instead cropped the individual RGB channels before overlaying the images. My reasoning for this 
+    was since the edges of each image contained noise, borders, or partial artifacts the inclusion of these was likely affecting
+    the alignment metrics (L2 and NCC). Below are the improved images.
+
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/single_scale/cathedral_exhaustive_precrop.jpg">
+            <div class="caption-info">Cathedral: R=(12, 3), G=(5, 2)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/monastery_exhaustive_precrop.jpg">
+            <div class="caption-info">Monastery: R=(3, 2), G=(-3, 2)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/tobolsk_exhaustive_precrop.jpg">
+            <div class="caption-info">Tobolsk: R=(6, 3), G=(3, 2)</div>
+        </div>
+    </div>
+
+    <h2>Part 2 – Pyramid Implementation</h2>
+    Although the naive approach worked well on smaller images, it is not effective for larger images.
+    To handle larger, higher-resolution images efficiently, I implemented a 4-level-pyramid alignment algorithm. 
+    Instead of exhaustively searching over a large displacement window on the larger full-resolution images, 
+    I built an image pyramid by repeatedly downsampling the source and reference channels. 
+    <br><br>
+    I first aligned the smallest, coarsest level of the pyramid using exhaustive search, and then progressively 
+    worked my way up and refined the displacement estimates at higher resolutions. By creating an image puyramid, I was
+    able to make the alignment process run significantly fater, while still returning aligned images. 
+
+    <h4>Challenges</h4>
+    The above methodology did work for most images, however it notably did not work for the melons or self portrait image files.
+
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/pyramid/melons_pyramid_precrop_25p.jpg">
+            <div class="caption-info">Melons</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/self_portrait_pyramid_precrop_25p.jpg">
+            <div class="caption-info">Self Portrait</div>
+        </div>
+    </div>
+    To combat this, I did two things: added gradient-based alignment and experimented with the number of pyramid levels.
+    
+    <h5>Pyramid Levels</h5>
+    One challenge was selecting the right number of pyramid levels. I found that too few or too many levels has visible
+    impacts on alignment. I ended up choosing to use 5 pyramid levels for my final overlays. Below are some of the images
+    at different pyramid levels.
+
+    <h6>Tobolsk Image</h6>
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/pyramid/tobolsk_pyramid_precrop_25p.jpg">
+            <div class="caption-info">4-level Pyramid</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/tobolsk_pyramid_5levels_precrop25p.jpg">
+            <div class="caption-info">5-level Pyramid</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/tobolsk_pyramid_6levels_precrop25p.jpg">
+            <div class="caption-info">6-level Pyramid</div>
+        </div>
+    </div>
+
+    <h6>Melons Image</h6>
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/pyramid/melons_pyramid_precrop_25p.jpg">
+            <div class="caption-info">4-level Pyramid</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/melons_pyramid_5levels_precrop25p.jpg">
+            <div class="caption-info">5-level Pyramid</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/melons_pyramid_6levels_precrop25p.jpg">
+            <div class="caption-info">6-level Pyramid</div>
+        </div>
+    </div>
+
+    <h5>Gradient-Based Alignment</h5>
+    In addition, I integrated a gradient-based preprocessing step. For each RGB channel, I used np.gradient to get its
+    gradient magnitude, then used the gradient to calculate alignment. By doing this the algorithm focus on consistent 
+    features or patterns across channels, making it less sensitive to differences in exposure or lighting.
+
+    <h4>Improved Images</h4>
+    In the end, I used a 5-level Pyramid algorithm, with pre-alignment cropping and gradient-based alignment metrics, 
+    to align all the images. Below are the improved versions of melons and self portrait using this methodology.
+    
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/pyramid/melons_pyramid_5levels_precrop25p.jpg">
+            <div class="caption-info">Melons</div>
+        </div>
+        <div class="image-item">
+            <img src="media/pyramid/self_portrait_pyramid_5levels_precrop25p.jpg">
+            <div class="caption-info">Self Portrait</div>
+        </div>
+    </div>
+
+    <h2>Full Gallery</h2>
+    <h3>Small Images</h3>
+    <div class="image-grid">
+        <div class="image-item">
+            <img src="media/single_scale/cathedral_exhaustive_precrop.jpg">
+            <div class="caption-info">Best Shift: R=(12, 3), G=(5, 2)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/monastery_exhaustive_precrop.jpg">
+            <div class="caption-info">Best Shift: R=(3, 2), G=(-3, 2)</div>
+        </div>
+        <div class="image-item">
+            <img src="media/single_scale/tobolsk_exhaustive_precrop.jpg">
+            <div class="caption-info">Best Shift: R=(6, 3), G=(3, 2)</div>
+        </div>
+    </div>
+
+    <h3>Large Images</h3>
+    <div class="results-section">
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/pyramid/cathedral_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(12, 3), G=(5, 2)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/church_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(58, -4), G=(25, 4)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/emir_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(104, 42), G=(48, 24)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/harvesters_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(123, 14), G=(59, 17)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/icon_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(89, 23), G=(41, 17)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/italil_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(77, 36), G=(38, 21)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/lastochikino_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(75, -8), G=(-3, -2)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/lugano_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(93, -29), G=(41, -16)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/melons_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(178, 13), G=(82, 10)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/monastery_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(3, 2), G=(-3, 2)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/self_portrait_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(175, 37), G=(78, 29)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/siren_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(97, -24), G=(49, -5)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/three_generations_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(110, 12), G=(51, 14)</div>
+            </div>
+            <div class="image-item">
+                <img src="media/pyramid/tobolsk_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(7, 3), G=(3, 3)</div>
+            </div>   
+        </div>
+    </div>
+
+    <h3>Choice Images</h3>
+    <div class="results-section">
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/choice/crafter_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(142, 21), G=(61, 22)</div>
+                <img src="media/choice/crafter.jpeg">
+            </div>
+            <div class="image-item">
+                <img src="media/choice/machine_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(142, 21), G=(61, 22)</div>
+                <img src="media/choice/machine.jpeg">
+            </div>
+            <div class="image-item">
+                <img src="media/choice/metal_ornament_pyramid_5levels_precrop25p.jpg">
+                <div class="caption-info">Best Shift: R=(142, 21), G=(61, 22)</div>
+                <img src="media/choice/metal_ornament.jpeg">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
