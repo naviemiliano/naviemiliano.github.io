@@ -154,6 +154,11 @@
             D<sub>y</sub>
         </div>
     </div>
+    <div class="caption-info">
+        <b>Runtime:</b> For runtime, the four loop implementation took longer to run 
+        compared to the two loop implementation. <br>
+        <b>Boundaries:</b> To handle boundaries, I used zero padding using <code>np.pad(...)</code>
+    </div>
     </div>
 
     <h3>Part 1.2 – Finite Difference Operator</h3>
@@ -187,7 +192,7 @@
             </div>
             <div class="image-item">
                 <img src="media/p1/binarizededges.png">
-                <div class="caption-info">Threshold: 0.37</div>
+                <div class="caption-info">Binarized edge image (threshold: 0.37)</div>
             </div>
         </div>
     </div>
@@ -196,16 +201,18 @@
         Here, I creatd a blurred version of the cameraman image by convolving it 
         with a 2D gaussian filter. I created the filter by using 
         <code>cv2.getGaussianKernel()</code> to create a 1D gaussian, then taking an 
-        outer product to get a 2D gaussian kernel.
+        I then convolved the gaussian with D<sub>x</sub> and D<sub>y</sub>.
 
-        Compared to the 
-
-What differences do you see?
-Now we can do the same thing with a single convolution instead of two by creating a derivative of gaussian filters. Convolve the gaussian with D_x and D_y and display the resulting DoG filters as images.
-
-Verify that you get the same result as before.
-
-THIS PART IS NOT COMPLETE
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/dog_gradmag.png">
+                <div class="caption-info">DoG Gradient Magnitude</div>
+            </div>
+            <div class="image-item">
+                <img src="media/dog_edges.png">
+                <div class="caption-info">DoG Edges (threshold: 0.12)</div>
+            </div>
+        </div>
     </div>
 
     <h2>Part 2 – Fun with Frequencies</h2>
