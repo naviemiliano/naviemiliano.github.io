@@ -55,7 +55,8 @@
     <h1>Project 3A: Image Warping and Mosaicing!</h1>
     <h2>Part A.1 – Shoot and Digitize Pictures</h2>
     <div>
-        <text>To complete this project, I first took multiple sets of images to utilize for the mosaicing. To make blending easiest, I fixed the center of projection of the images (COP) by placing my phone camera on a flat surface and rotating the phone as I took photos. By maintaining the same COP, it is easier to create a blended mosaic, as the photos are all taken from the same point and do not need to account for changes in perspective.</text>
+        For this project, I captured several sets of overlapping photos to eventually blend into one larger panoramic photo. 
+        To take my photos, I fixed the center of projection of the images (COP) by placing my phone camera on a flat surface and rotating the phone as I took photos and ensured that the photos had ~50-60% of overlap, both of which will help me when choosing correspondence points later in the project. 
         <br><br>
         <text>Below are two examples of image sets:</text>
         <h5><i>Lab Photos</i></h5>
@@ -94,9 +95,20 @@
 
     <h2>Part A.2 – Recover Homographies</h2>
     <div>
-        <text>From these images, I needed to recover the homography in order to transform the images to create the mosaic.</text>
+
+        To align the images, I implemented the function <code>computeH(im1_pts, im2_pts)</code> which recovers the homography given a set of corresponding points taken from two images. A <b>homography</b> is a matrix that represents a projective transformation, and maps points from one image to a second image. 
         <br><br>
-        A <b>homography</b> is a matrix that represents a projective transformation, and maps points from one image to a second image. To choose my points, I used <a href="https://pixspy.com">pixspy.com</a> and uploaded all three images. When choosing my points, I tried to select distinguishable features (such as corners of furniture) as well as features that appear in all three images.
+        To choose my points, I used <a href="https://pixspy.com">pixspy.com</a> and uploaded all three images. When choosing my points, I tried to select distinguishable features (such as corners of furniture) as well as features that appear in all three images.
+        <br><br>
+        
+        <code>computeH(im1_pts, im2_pts)</code> makes a system of linear equations of the form Ah = b, where h represents the unknown transformation parameters. 
+        The transformation equation I used is p'=Hp, where H is a 3x3 matrix with 8 degrees of freedom (8 unknown values). For each set of correspondence points, the linear system of eqations is:
+        <br><br>
+        <code>[-x, -y, -1,  0,  0,  0, x*x', y*y'] * h = -x'</code><br>
+        <code>[ 0,  0,  0, -x, -y, -1, x*y', y*y'] * h = -y'</code>
+        <br><br>
+        This equation gives us <code>2*n</code> equations for <code>n</code> correspondence points. To ensure stability, I chose >4 points per image set, and solved the over determined system using least squares, where <code>h = (A<sup>T</sup>A)<sup>-1</sup>A<sup>T</sup>b</code>.
+
         <br><br>
         Below you can see the correspondence points I chose for my lab photos visualized on each image.
         <div class="image-grid">
@@ -115,30 +127,20 @@
 
             </div>
         </div>
-
-        [INSERT SYSTEM OF EQS]
-        [INSERT RECOVERED HOMO MATRIX]
-
-
     </div>
 
     <h2>Part A.3 – Warp the Images</h2>
     <div>
-        Before I could blend the images, I needed to use the homographies (found in the previous section) to warp each image to align with the reference image. For each set of images, I used the center image as the reference image.
+        Before I could blend the images, I needed to use the homographies (found in the previous section) to warp each image to align with the reference (or center) image.
         <br><br>
-        To warp the images, I implemented two interpolation methods: Nearest Neighbor Interpolation and Bilinear Interpolation.
-        <br><br>
-        <b>Nearest Neighbor Interpolation</b> 
-        <br><br>
-        <b>Bilinear Interpolation</b>
-
+        To warp the images, I implemented two interpolation methods: Nearest Neighbor Interpolation and Bilinear Interpolation. <b>Nearest Neighbor Interpolation</b> is when each destination pixel samples the color of the nearest projected source pixel. This method is quicker than bilinear interpolation fast but creates jagged edges. With <b>Bilinear Interpolation</b> each destination pixel value is computed as a weighted average of its four neighboring pixels in the source image. Similar to a guassian filter, this averaging creates smoother results. However, compared to nearest neighbor interpolation, its more computationally expensive and takes longer to run.
     </div>
 
     <h2>Part A.4 – Blend the Images into a Mosaic</h2>
     <div>
         Finally, I created a mosaic of the images!!
         <br><br>
-        
+
     </div>
 
 </body>
