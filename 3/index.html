@@ -124,7 +124,6 @@
             <div class="image-item">
                 <img src="media/lab3pts.png">
                 <div class="caption-info">Right Image</div>
-
             </div>
         </div>
     </div>
@@ -134,13 +133,36 @@
         Before I could blend the images, I needed to use the homographies (found in the previous section) to warp each image to align with the reference (or center) image.
         <br><br>
         To warp the images, I implemented two interpolation methods: Nearest Neighbor Interpolation and Bilinear Interpolation. <b>Nearest Neighbor Interpolation</b> is when each destination pixel samples the color of the nearest projected source pixel. This method is quicker than bilinear interpolation fast but creates jagged edges. With <b>Bilinear Interpolation</b> each destination pixel value is computed as a weighted average of its four neighboring pixels in the source image. Similar to a guassian filter, this averaging creates smoother results. However, compared to nearest neighbor interpolation, its more computationally expensive and takes longer to run.
+        <br><br>
+        To test my implementations, I performed <i><b>"rectification"</b></i> on images. This means, I used the recovered homography to take images that have warped perspectives of known rectanglular objects in them (such as TV screens, posters, and tables) and make the objects appear rectangular again. Below are some examples of rectification using my implementation:
+            <div class="image-item">
+                <img src="media/rectification1.png">
+            </div>
+            <div class="image-item">
+                <img src="media/rectification2.png">
+            </div>
+        
     </div>
 
     <h2>Part A.4 – Blend the Images into a Mosaic</h2>
     <div>
         Finally, I created a mosaic of the images!!
-        <br><br>
 
+        <h5><i>Lab Photos</i></h5>
+        <div class="image-item">
+            <img src="media/labm.png">
+        </div>
+        
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/lab12m.png">
+            </div>
+            <div class="image-item">
+                <img src="media/lab23m.png">
+            </div>
+        </div>
+        <h5><i>2 Photos</i></h5>
+        <h5><i>3 Photos</i></h5>
     </div>
 
 </body>
