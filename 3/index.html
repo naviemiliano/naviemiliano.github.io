@@ -160,9 +160,9 @@
 
     <h2>Part A.4 – Blend the Images into a Mosaic</h2>
     <div>
-        Finally, I created a mosaic of the images!!
+        Finally, I created mosaics of the images!!
         <br><br>
-        After warping the images, I blended them together to make mosaics using features from project 2 such as gaussian and la. Instead of just stacking the images, I used weighted averaging (feathering) to create smooth transitions. Each image had an alpha mask that faded toward the edges, which helped remove visible seams where the images overlapped.
+        After warping the images, I blended them together. I did this by keeping the center image static and inverse-warped the left and right images to it. From there, I used weighted feather masks to remove seams in the areas where the images overlapped.
         <br><br>
         I made three mosaics in total, each with a different set of overlapping photos, seen below:
         <h4><i>Lab Photos</i></h4>
