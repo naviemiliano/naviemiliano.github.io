@@ -134,35 +134,77 @@
         <br><br>
         To warp the images, I implemented two interpolation methods: Nearest Neighbor Interpolation and Bilinear Interpolation. <b>Nearest Neighbor Interpolation</b> is when each destination pixel samples the color of the nearest projected source pixel. This method is quicker than bilinear interpolation fast but creates jagged edges. With <b>Bilinear Interpolation</b> each destination pixel value is computed as a weighted average of its four neighboring pixels in the source image. Similar to a guassian filter, this averaging creates smoother results. However, compared to nearest neighbor interpolation, its more computationally expensive and takes longer to run.
         <br><br>
-        To test my implementations, I performed <i><b>"rectification"</b></i> on images. This means, I used the recovered homography to take images that have warped perspectives of known rectanglular objects in them (such as TV screens, posters, and tables) and make the objects appear rectangular again. Below are some examples of rectification using my implementation:
+        To test my implementations I did two tests. The first was performing <i><b>"rectification"</b></i> on images. This means, I used the recovered homography to take images that have warped perspectives of known rectanglular objects in them (such as TV screens, posters, and tables) and make the objects appear rectangular again. Below are some examples of rectification using my implementation:
             <div class="image-item">
                 <img src="media/rectification1.png">
             </div>
             <div class="image-item">
                 <img src="media/rectification2.png">
             </div>
-        
+        The second was overlaying the computed homography points of the transformed image on to the points in the destination image. Some of the results of my function can be found below:
+        <br>
+        <br>
+        <div class="image-item">
+            All Points    
+                <img src="media/grimes_allpoints.png">
+            </div>
+            <div class="image-grid">
+            <div class="image-item">
+                <img src="media/grimes_12points.png">
+            </div>
+            <div class="image-item">
+                <img src="media/grimes_23points.png">
+            </div>
+            </div>
     </div>
 
     <h2>Part A.4 – Blend the Images into a Mosaic</h2>
     <div>
         Finally, I created a mosaic of the images!!
+        <br><br>
+        After warping the images, I blended them together to make mosaics using features from project 2 such as gaussian and la. Instead of just stacking the images, I used weighted averaging (feathering) to create smooth transitions. Each image had an alpha mask that faded toward the edges, which helped remove visible seams where the images overlapped.
+        <br><br>
+        I made three mosaics in total, each with a different set of overlapping photos, seen below:
+        <h4><i>Lab Photos</i></h4>
+        <img src="media/labm.png">
+        <div class="image-grid">
+            <img src="media/lab12m.png">
+            <img src="media/lab23m.png">
+        </div>
+        <div class="image-grid">
+            <img src="media/lab1.jpeg">
+            <img src="media/lab2.jpeg">
+            <img src="media/lab3.jpeg">
+        </div>
+         
+        <h5><i>Grimes Photos</i></h5>
+        <img src="media/grimesm.png">
+        
+        <div class="image-grid">
+            <img src="media/grimes12m.png">
+            <img src="media/grimes23m.png">
+        </div>
 
-        <h5><i>Lab Photos</i></h5>
+        <div class="image-grid">
+            <img src="media/grimes1.jpeg">
+            <img src="media/grimes2.jpeg">
+            <img src="media/grimes3.jpeg">            
+        </div>
+
+        <h5><i>Bookcase Photos</i></h5>
         <div class="image-item">
-            <img src="media/labm.png">
+            <img src="media/bookcasem.png">
         </div>
         
         <div class="image-grid">
-            <div class="image-item">
-                <img src="media/lab12m.png">
-            </div>
-            <div class="image-item">
-                <img src="media/lab23m.png">
-            </div>
+            <img src="media/bookcase12m.png">
+            <img src="media/bookcase23m.png">
         </div>
-        <h5><i>2 Photos</i></h5>
-        <h5><i>3 Photos</i></h5>
+        <div class="image-grid">
+            <img src="media/bookcase1.jpeg">
+            <img src="media/bookcase2.jpeg">
+            <img src="media/bookcase3.jpeg">            
+        </div>
     </div>
 
 </body>
