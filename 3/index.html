@@ -164,7 +164,15 @@
         <br><br>
         After warping the images, I blended them together. I did this by keeping the center image static and inverse-warped the left and right images to it. From there, I used weighted feather masks to remove seams in the areas where the images overlapped.
         <br><br>
-        I made three mosaics in total, each with a different set of overlapping photos, seen below:
+        Explicitly, the steps were as follows:
+        <ol>
+            <li>Shoot a set of 3 images while maintaining the same Center of Projection (COP)</li>
+            <li>Manually select correspondence points in the image (I used pixspy.com)</li>
+            <li>Recover the transformation homography (and check that the points properly align)</li>
+            <li>Warp the left and right images</li>
+            <li>Merge the left and right images to the center image</li>
+        </ol>
+        Below are three of my final mosaics:
         <h4><i>Lab Photos</i></h4>
         <img src="media/labm.png">
         <div class="image-grid">
