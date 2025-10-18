@@ -51,8 +51,9 @@
     </style>
 </head>
 <body>
-    <h1>Project 3A: Image Warping and Mosaicing!</h1>
-    <h2>Part A.1 – Shoot and Digitize Pictures</h2>
+    <h1>Project 3: (Auto)stitching and Photo Mosaics</h1>
+    <h2>Project 3A: Image Warping and Mosaicing!</h2>
+    <h3>Part A.1 – Shoot and Digitize Pictures</h3>
     <div>
         For this project, I captured several sets of overlapping photos to eventually blend into one larger panoramic photo. 
         To take my photos, I fixed the center of projection of the images (COP) by placing my phone camera on a flat surface and rotating the phone as I took photos and ensured that the photos had ~50-60% of overlap, both of which will help me when choosing correspondence points later in the project. 
@@ -92,7 +93,7 @@
         </div>
     </div>
 
-    <h2>Part A.2 – Recover Homographies</h2>
+    <h3>Part A.2 – Recover Homographies</h3>
     <div>
 
         To align the images, I implemented the function <code>computeH(im1_pts, im2_pts)</code> which recovers the homography given a set of corresponding points taken from two images. A <b>homography</b> is a matrix that represents a projective transformation, and maps points from one image to a second image. 
@@ -127,7 +128,7 @@
         </div>
     </div>
 
-    <h2>Part A.3 – Warp the Images</h2>
+    <h3>Part A.3 – Warp the Images</h3>
     <div>
         Before I could blend the images, I needed to use the homographies (found in the previous section) to warp each image to align with the reference (or center) image.
         <br><br>
@@ -157,7 +158,7 @@
             </div>
     </div>
 
-    <h2>Part A.4 – Blend the Images into a Mosaic</h2>
+    <h3>Part A.4 – Blend the Images into a Mosaic</h3>
     <div>
         Finally, I created mosaics of the images!!
         <br><br>
@@ -213,6 +214,115 @@
             <img src="media/bookcase3.jpeg">            
         </div>
     </div>
+    <h2>Project 3B: Feature Matching for Autostitching</h2>
+    In part A, I manually selected points to be used to compute homographies. In this part, I created functions for automatic stitching following the paper <a href="https://cal-cs180.github.io/fa25/hw/proj3/Papers/MOPS.pdf">“Multi-Image Matching using Multi-Scale Oriented Patches” by Brown et al.</a>
+    <h3>Part B.1 – Harris Corner Detection</h3>
+    <div>
+        <h4>Harris Corner Detection Algorithm</h4>
+        To start, I used the Harris Corner Detection to find corners within the images. I largely used CS180 starter code (<a href="https://cal-cs180.github.io/fa25/hw/proj3/harris.py">here</a>), with a few tweaks to the thresholding. 
+        <br><br>
+        Harris Corner Detection measures how much the image intensity changes within a small window of the images. Each point in the image is given a "harris strenth". The larger the harris strength value, the stronger and more pronounced a point is compared to the points in the surrounding window.
+        <div class="image-grid">
+            <img src="media/harris1.png">
+            <img src="media/harris2.png">
+        </div>
+        <h4>Adaptive Non-Maximal Suppression (ANMS)</h4>
+        To enhance the selected points of interest, and get a more evenly distributed map of interest points, I implemented Adaptive Non-Maximal Suppression (ANMS), which works as follows:
+        <ol>
+            <li>Given Harris coordinates and response values, sort corners in descending order by Harris response values/strength</li>
+            <li>For each corner, compute the minimum distance to a corner with a significantly stronger Harris response. "Significantly stronger" is based on the equation f(x) < c * f(x)</li>
+            <li>Select the top n corners with the largest suppression radii</li>
+        </ol>
+        By following this implementation, this ensures that the selected points are more evenly distributed across the image.
+        <img src="media/amns1.png">
+        
+    </div>
+
+    <h3>Part B.2 – Feature Descriptor Extraction</h3>
+    <div>
+        After selecting interest points, I thien created descriptors for the local appearance around the points, allowing me to later match corresponding points between images.
+        My approach was as follows:
+        <ol>
+            <li>Take a 40x40 area/patch centered at each interest point</li>
+            <li>Apply a low-pass gaussian filter to remove excess noise and reduce aliasing</li>
+            <li>Downsample the patch, with a spacing of 5px, to 8x8</li>
+            <li>Flatten the 8x8 patch to  a 64-dimensional feature vector</li>
+            <li>Normalize the descriptors using the following equation: (vector - vector_mean) / vector_stdev </li>
+        </ol>
+        <img src="media/features1.png">
+        <img src="media/features2.png">
+
+    </div>
+
+    <h3>Part B.3 – Feature Matching</h3>
+    <div>
+        Next, I found correspondences by taking the descriptors of multiple images and pairing ones that were similar using Nearest Neighbor and Lowe's ratio test. Lowe's ratio test compares the distance to a points first nearest neighbor to it's second nearest neighbor, with a small ratio being indiciative of a reliable match.
+        My approach was as follows:
+        <ol>
+            <li>Compute euclidean distance between all descriptor pairs from images 1 and 2. (I used the dist2 function provided in the harris.py file and took the square root of the result)</li>
+            <li>For each descriptor in image 1, I sorted the image 2 descriptors by their distance from the image 1 descriptor. Then identified the two nearest neighbors (NN1, NN2)</li>
+            <li>Apply Lowe's ratio test by accepting the match IFF sqrt(descriptor1/descriptor2) < threshold</li>
+        </ol>
+
+        <img src="media/featmatches1.png">
+    </div>
+
+    <h3>Part B.4 – RANSAC for Robust Homography</h3>
+    <div>
+        Even after careful matching, some incorrect feature matches will remain. Random Sample Consensus (RANSAC) allows us to estimate the homography while ignoring outliers.
+        The 4-point RANSAC Algorithm works as follows:
+        <ol>
+            <li>Randomly select 4 matched points</li>
+            <li>Compute the homography</li>
+            <li>Compute <i>inliers</i>, which are the matches that transform within a small error</li>
+            <li>Repeat in a loop until you find the homography with the most inliers</li>
+        </ol>
+        <b>Analysis and Comparison</b><br>
+        Visually, compared to the manual stitching from part A, the automatic stitching are mostly indistinguishable to my eye. However, I feel that for my lab images (shown below) the RANSAC approach created a more seamless mosaic, and showed less of the borders between the images.
+        
+
+        As for implementation, the automatic stitching approach was far cleaner. For manual point selection, I had a lot of difficulty selecting points, as I spent a lot of time zooming in on my photos (to the pixel level) to select my points. The automatic point selection and stitching was also significantly faster and more consistent than the time it took me to manually select and match points.
+        <br><br>
+        Below are comparisons between the manual mosaicing from Part A and the RANSAC Mosaicing.
+        <br><br>
+        <h4><i>Bookcase Mosaics</i></h4>
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/bookcasem.png">
+                <div class="caption-info">Manual Stitching</div>
+            </div>
+            <div class="image-item">
+                <img src="media/bookcase_ransac.jpeg.png">
+                <div class="caption-info">RANSAC Stitching</div>
+            </div>
+        </div>
+
+        <h4><i>Lab Mosaics</i></h4>
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/labm.png">
+                <div class="caption-info">Manual Stitching</div>
+            </div>
+            <div class="image-item">
+                <img src="media/lab_ransac.jpeg.png">
+                <div class="caption-info">RANSAC Stitching</div>
+            </div>
+        </div>
+
+        <h4><i>Grimes Mosaics</i></h4>
+        <div class="image-grid">
+            <div class="image-item">
+                <img src="media/grimesm.png">
+                <div class="caption-info">Manual Stitching</div>
+            </div>
+            <div class="image-item">
+                <img src="media/grimes_ransac.jpeg.png">
+                <div class="caption-info">RANSAC Stitching</div>
+            </div>
+        </div>
+    </div>
+
+
 
 </body>
 </html>
